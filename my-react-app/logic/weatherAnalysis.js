@@ -1,12 +1,14 @@
 export function detectAnomalies(hourlyData, dailyData) {
     const anomalies = [];
-    scanForAnomalies(hourlyData, anomalies);
-    scanForAnomalies(dailyData, anomalies);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    scanForAnomalies(hourlyData, anomalies, today);
+    scanForAnomalies(dailyData, anomalies, today);
     return anomalies;
 }
 
-function scanForAnomalies(data, anomalies) {
-    const lastTime = data.time?.[data.time.length - 1];
+function scanForAnomalies(data, anomalies, cutoffDate) {
+    const times = data.time;
     for (const [key, values] of Object.entries(data)) {
         if (key === 'time' || !Array.isArray(values)) continue;
         const filtered = values.filter(v => v !== null);
@@ -14,9 +16,15 @@ function scanForAnomalies(data, anomalies) {
         const avg = mean(filtered);
         const sd = stdev(filtered, avg);
         if (sd === 0) continue;
-        const z = zScore(values[values.length - 1], avg, sd);
-        if (Math.abs(z) > 2) {
-            anomalies.push({ variable: key, zscore: z, time: lastTime });
+        for (let i = 0; i < values.length; i++) {
+            if (values[i] === null) continue;
+            const timeStr = times[i];
+            const date = new Date(timeStr);
+            if (date > cutoffDate) continue;
+            const z = zScore(values[i], avg, sd);
+            if (Math.abs(z) > 2) {
+                anomalies.push({ variable: key, zscore: z, time: timeStr });
+            }
         }
     }
 }

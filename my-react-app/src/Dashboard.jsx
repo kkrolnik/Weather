@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { detectAnomalies } from '../logic/weatherAnalysis';
+import AnomaliesTable from './AnomaliesTable';
 
 function Dashboard() {
 
@@ -45,20 +46,12 @@ function Dashboard() {
     </ul>
     
     <div className="anomalies">
-    
+
     <h2>Anomalies:</h2>
 
-    {hourlyData && dailyData && detectAnomalies(hourlyData, dailyData).map((anomaly, index) => (
-        <div key={index}>
-            <p>Variable: {anomaly.variable}</p>
-            <p>Z-Score: {anomaly.zscore.toFixed(2)}</p>
-            <p>Time: {new Date(anomaly.time).toLocaleString()}</p>
-        </div>
-    ))}
+    {hourlyData && dailyData && <AnomaliesTable anomalies={detectAnomalies(hourlyData, dailyData)} />}
 
     </div>
-
-    
 
     </>
 
